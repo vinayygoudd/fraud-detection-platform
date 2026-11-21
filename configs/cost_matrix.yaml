@@ -1,0 +1,63 @@
+# Configurable financial cost assumptions and three-way decision engine settings.
+#
+# IMPORTANT DISCLAIMER:
+# PaySim transaction amounts are unitless synthetic simulator values and must NOT
+# be assumed to represent INR, USD, or any real-world currency. All cost values
+# below are illustrative portfolio modeling assumptions (expressed in "cost units")
+# and must be calibrated against validated business economics before production use.
+
+currency_unit: "illustrative_cost_units"
+
+costs:
+  # False Negative (APPROVE a fraudulent transaction):
+  # Fixed penalty plus fraction of transaction amount lost if fraud is missed.
+  false_negative_fixed: 25.0
+  false_negative_amount_fraction: 1.0
+
+  # False Positive (BLOCK a legitimate transaction):
+  # Customer friction, support overhead, and potential churn cost.
+  false_positive_block_fixed: 35.0
+  false_positive_block_amount_fraction: 0.02
+
+  # Manual Review (REVIEW decision for either fraud or legitimate transaction):
+  # Analyst investigation overhead per reviewed transaction.
+  manual_review_fixed: 10.0
+
+  # Residual fraud loss if a reviewed fraudulent transaction still slips through
+  # (e.g., 15% of amount lost even when routed to manual review).
+  review_fraud_slippage_fraction: 0.15
+
+  # Legitimate customer friction on manual review (minor delay cost).
+  review_legit_friction_fixed: 3.0
+
+  # True Positive (BLOCK a fraudulent transaction):
+  # Direct loss avoided; small operational handling cost.
+  true_positive_block_fixed: 1.0
+
+  # True Negative (APPROVE a legitimate transaction):
+  true_negative_approve_fixed: 0.0
+
+decision_engine:
+  # Default fallback thresholds if threshold optimization has not yet run.
+  # Must strictly satisfy: 0 < review_threshold < block_threshold < 1.
+  default_review_threshold: 0.25
+  default_block_threshold: 0.75
+
+  # Grid search space for Validation-set threshold optimization.
+  search:
+    t1_min: 0.05
+    t1_max: 0.60
+    t1_step: 0.05
+    t2_min: 0.20
+    t2_max: 0.95
+    t2_step: 0.05
+    min_gap: 0.05
+
+  # Optional operational constraint: maximum fraction of transactions routed to REVIEW.
+  # Set to null to disable capacity constraint.
+  max_review_rate: 0.10
+
+sensitivity_analysis:
+  false_negative_multipliers: [0.5, 1.0, 1.5, 2.0]
+  false_positive_multipliers: [0.5, 1.0, 1.5, 2.0]
+  manual_review_multipliers: [0.5, 1.0, 2.0]

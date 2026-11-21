@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.aws/
+kaggle.json
+
+# Data files (do not commit large PaySim CSVs or processed datasets)
+data/raw/*.csv
+data/raw/*.zip
+data/raw/*.parquet
+data/processed/*.csv
+data/processed/*.parquet
+
+# MLflow & Model artifacts
+mlruns/
+mlartifacts/
+artifacts/models/*.joblib
+artifacts/models/*.json
+artifacts/plots/*.png
+artifacts/reports/*.json
+
+# Logs & Caches
+logs/
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.zip

@@ -1,0 +1,128 @@
+# Central configuration for Real-Time Fraud Detection & Risk Scoring Platform
+
+project:
+  name: "Real-Time Fraud Detection & Risk Scoring Platform"
+  version: "1.0.0"
+  random_seed: 42
+
+database:
+  host: "${POSTGRES_HOST:-localhost}"
+  port: "${POSTGRES_PORT:-5432}"
+  name: "${POSTGRES_DB:-fraud_detection}"
+  user: "${POSTGRES_USER:-fraud_user}"
+  password: "${POSTGRES_PASSWORD:-}"
+  pool_size: 10
+  max_overflow: 20
+  echo: false
+
+paths:
+  raw_data_dir: "data/raw"
+  raw_paysim_file: "data/raw/PS_20174392719_1491204439457_log.csv"
+  processed_data_dir: "data/processed"
+  artifacts_dir: "artifacts"
+  models_dir: "artifacts/models"
+  reports_dir: "artifacts/reports"
+  plots_dir: "artifacts/plots"
+  sql_dir: "sql"
+  mlflow_tracking_uri: "file:./mlruns"
+
+data:
+  expected_columns:
+    - "step"
+    - "type"
+    - "amount"
+    - "nameOrig"
+    - "oldbalanceOrg"
+    - "newbalanceOrig"
+    - "nameDest"
+    - "oldbalanceDest"
+    - "newbalanceDest"
+    - "isFraud"
+    - "isFlaggedFraud"
+  valid_tx_types:
+    - "PAYMENT"
+    - "TRANSFER"
+    - "CASH_OUT"
+    - "DEBIT"
+    - "CASH_IN"
+  high_risk_tx_types:
+    - "TRANSFER"
+    - "CASH_OUT"
+  chunk_size: 100000
+
+features:
+  numeric_features:
+    - "steps_since_last_tx"
+    - "tx_count_last_3_steps"
+    - "tx_count_last_24_steps"
+    - "tx_amount_sum_last_3_steps"
+    - "tx_amount_sum_last_24_steps"
+    - "hist_tx_count"
+    - "hist_avg_amount"
+    - "amount_vs_user_avg_ratio"
+    - "hist_max_amount"
+    - "amount_vs_user_max_ratio"
+    - "high_risk_type_count_24_steps"
+    - "step_hour_of_day"
+    - "is_first_tx"
+    - "amount"
+    - "log_amount"
+  categorical_features:
+    - "tx_type"
+  excluded_leakage_columns:
+    - "newbalanceOrig"
+    - "newbalanceDest"
+    - "isFlaggedFraud"
+  target_column: "is_fraud"
+  step_column: "step"
+  cold_start_steps_sentinel: -1
+
+splitting:
+  strategy: "chronological"
+  train_fraction: 0.70
+  val_fraction: 0.15
+  test_fraction: 0.15
+  min_fraud_per_split: 50
+
+models:
+  primary_selection_metric: "pr_auc"
+  calibration:
+    enabled: true
+    method: "isotonic"  # isotonic or sigmoid
+    n_bins: 10
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    class_weight: "balanced"
+    solver: "lbfgs"
+  random_forest:
+    n_estimators: 200
+    max_depth: 12
+    min_samples_leaf: 10
+    class_weight: "balanced_subsample"
+    n_jobs: -1
+  xgboost:
+    n_estimators: 300
+    max_depth: 6
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+    eval_metric: "aucpr"
+    tree_method: "hist"
+    n_jobs: -1
+
+explainability:
+  top_k_features: 5
+  background_sample_size: 200
+  summary_plot_sample_size: 1000
+
+mlflow:
+  experiment_name: "fraud-detection-risk-scoring"
+  registered_model_name: "fraud_risk_scorer"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  log_level: "INFO"
+  max_step_value: 100000
+  duplicate_policy: "idempotent_replay_or_409"
